@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Pulse Atelier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="art-canvas" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="top-nav" role="navigation" aria-label="Abstract variable pages">
+      <div class="brand">Photo Pulse Atelier</div>
+      <nav>
+        <button class="nav-pill active" data-page="upload">Seed Frame</button>
+        <button class="nav-pill" data-page="chromaticPulse">Chromatic Pulse</button>
+        <button class="nav-pill" data-page="texturalEcho">Textural Echo</button>
+        <button class="nav-pill" data-page="rhythmField">Rhythm Field</button>
+        <button class="nav-pill" data-page="energyBloom">Energy Bloom</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel panel-upload active" data-page="upload">
+        <div class="upload-card">
+          <p class="kicker">Figma Concept</p>
+          <a class="figma-link" href="https://www.figma.com/design/xk1gSJ2n9VlyY7IpdaiY6g/Untitled?node-id=1-2&t=JD7lzwwPyUSWC3Nd-4" target="_blank" rel="noopener noreferrer">Open the design direction in Figma ↗</a>
+          <h1>Turn any photo into a living abstract world.</h1>
+          <p>
+            Upload an image and this space remixes its colours, texture, contrast, and composition
+            into an animated generative artwork that reacts to your mouse or touch.
+          </p>
+          <label class="upload-zone" for="image-upload">
+            <input id="image-upload" type="file" accept="image/*" />
+            <span>Drop image here or click to upload</span>
+          </label>
+          <div class="upload-actions">
+            <button id="save-artwork" class="ghost-btn" type="button">Save artwork snapshot</button>
+          </div>
+          <p class="hint">Tip: Try portraits, architecture, or landscapes for dramatically different rhythms.</p>
+        </div>
+      </section>
+
+      <section class="panel panel-dashboard" data-page="chromaticPulse" aria-live="polite">
+        <div class="cards-layer" id="cards-layer"></div>
+      </section>
+
+      <section class="panel panel-message" data-page="texturalEcho">
+        <div class="message-card">
+          <h2>Textural Echo</h2>
+          <p>The texture-driven field is active in the shared background. Explore and drag cards while this page tracks micro-grain dynamics.</p>
+        </div>
+      </section>
+
+      <section class="panel panel-message" data-page="rhythmField">
+        <div class="message-card">
+          <h2>Rhythm Field</h2>
+          <p>Pulse orchestration mode focuses on compositional cadence and balance vectors while maintaining live interaction coupling.</p>
+        </div>
+      </section>
+
+      <section class="panel panel-message" data-page="energyBloom">
+        <div class="message-card">
+          <h2>Energy Bloom</h2>
+          <p>High-energy mode amplifies motion simulation, contrast spikes, and interaction-responsive bloom for a performance-like visual state.</p>
+        </div>
+      </section>
+    </main>
+
+    <template id="card-template">
+      <article class="dash-card" tabindex="0">
+        <header>
+          <h3></h3>
+          <button class="expand-btn" aria-label="Expand card">⤢</button>
+        </header>
+        <div class="card-content"></div>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
