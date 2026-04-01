@@ -23,7 +23,12 @@ let metrics = {
   imageEnergy: 42,
   motionEnergy: 14,
   abstraction: 63,
+  colorDepth: 52,
+  pointerSpeed: 0,
   interaction: 0,
+  clicks: 0,
+  touches: 0,
+  moves: 0,
   state: "idle synthesis",
 };
 
@@ -36,6 +41,7 @@ const cardDefs = [
   { key: "imageEnergy", title: "Image Energy" },
   { key: "motionEnergy", title: "Motion Energy" },
   { key: "abstraction", title: "Abstraction Intensity" },
+  { key: "colorDepth", title: "Colour Depth" },
   { key: "interaction", title: "Interaction Flux" },
   { key: "state", title: "Generative State" },
 ];
@@ -129,14 +135,49 @@ function updateCards() {
     const body = card.querySelector(".card-content");
 
     if (key === "dominant") {
-      body.innerHTML = `<div class="palette">${metrics.dominant
-        .map((c) => `<span class="swatch" style="background:${c}"></span>`)
+      body.innerHTML = `<div class="palette rich">${metrics.dominant
+        .map((c, i) => `<span class="swatch tall" style="background:${c};height:${24 + i * 7}px"></span>`)
         .join("")}</div>`;
       return;
     }
 
+    if (key === "contrast") {
+      body.innerHTML = `<div class="ring" style="--value:${metrics.contrast}"><span>${Math.round(metrics.contrast)}%</span></div>`;
+      return;
+    }
+
+    if (key === "complexity") {
+      body.innerHTML = `<svg class="spark" viewBox="0 0 120 44" aria-hidden="true">${makeSparkline(metrics.complexity)}</svg>`;
+      return;
+    }
+
+    if (key === "texture") {
+      body.innerHTML = `<div class="dot-field">${makeDotField(metrics.texture)}</div>`;
+      return;
+    }
+
+    if (key === "balance") {
+      const left = Math.max(8, Math.min(92, metrics.balance));
+      body.innerHTML = `<div class="split-bar"><span style="width:${left}%"></span><span style="width:${100 - left}%"></span></div>`;
+      return;
+    }
+
+    if (["imageEnergy", "motionEnergy", "abstraction", "colorDepth"].includes(key)) {
+      const value = Number(metrics[key] ?? 0);
+      body.innerHTML = `<div class="wave-bars">${new Array(14)
+        .fill(0)
+        .map((_, i) => `<span style="height:${Math.max(8, value * 0.35 + Math.sin(t * 3 + i) * 8)}px"></span>`)
+        .join("")}</div><p>${Math.round(value)}%</p>`;
+      return;
+    }
+
+    if (key === "interaction") {
+      body.innerHTML = `<div class="metric-grid"><div class="metric-pill">moves ${metrics.moves}</div><div class="metric-pill">clicks ${metrics.clicks}</div><div class="metric-pill">touches ${metrics.touches}</div><div class="metric-pill">speed ${Math.round(metrics.pointerSpeed)}</div></div>`;
+      return;
+    }
+
     if (key === "state") {
-      body.innerHTML = `<p>${metrics.state}</p><div class="metric-grid">${[metrics.contrast, metrics.texture, metrics.motionEnergy]
+      body.innerHTML = `<p>${metrics.state}</p><div class="metric-grid">${[metrics.contrast, metrics.texture, metrics.motionEnergy, metrics.colorDepth]
         .map((v) => `<div class="metric-pill">${Math.round(v)}%</div>`)
         .join("")}</div>`;
       return;
@@ -145,6 +186,25 @@ function updateCards() {
     const value = Number(metrics[key] ?? 0);
     body.innerHTML = `<p>${Math.round(value)}%</p><div class="bar"><span style="width:${value}%"></span></div>`;
   });
+}
+
+function makeSparkline(value) {
+  const points = new Array(8).fill(0).map((_, i) => {
+    const y = 36 - (value * 0.24 + Math.sin(t * 2 + i) * 7 + (i % 2 ? 3 : -3));
+    return `${i * 16},${Math.max(4, Math.min(40, y)).toFixed(1)}`;
+  });
+  return `<polyline points="${points.join(" ")}"></polyline>`;
+}
+
+function makeDotField(value) {
+  const count = Math.round(8 + value * 0.28);
+  return new Array(count)
+    .fill(0)
+    .map(
+      (_, i) =>
+        `<span style="left:${(i * 13) % 92}%;top:${(i * 17) % 80}%;opacity:${0.22 + (i % 5) * 0.12};width:${4 + (i % 4)}px;height:${4 + (i % 4)}px"></span>`
+    )
+    .join("");
 }
 
 function drawSourceImageLayer() {
@@ -213,6 +273,7 @@ function sampleImage(file) {
     metrics.balance = Math.min(100, 100 - Math.abs(50 - (avgLum / 255) * 100));
     metrics.imageEnergy = Math.min(100, (metrics.contrast + metrics.texture + metrics.complexity) / 2);
     metrics.abstraction = Math.min(100, (metrics.imageEnergy + metrics.complexity) / 2);
+    metrics.colorDepth = Math.min(100, paletteBuckets.size);
     metrics.state = "image infused";
     navPills[1].click();
   };
@@ -246,20 +307,32 @@ saveArtworkBtn.addEventListener("click", saveArtworkSnapshot);
 replacePhotoBtn.addEventListener("click", () => uploadInput.click());
 
 window.addEventListener("mousemove", (e) => {
+  const dx = e.clientX - pointer.x;
+  const dy = e.clientY - pointer.y;
   pointer.x = e.clientX;
   pointer.y = e.clientY;
   pointer.active = 1;
+  metrics.pointerSpeed = Math.min(999, Math.hypot(dx, dy) * 3);
+  metrics.moves += 1;
   clearTimeout(window.__activeTimeout);
   window.__activeTimeout = setTimeout(() => (pointer.active = 0), 220);
 });
 
 window.addEventListener("touchmove", (e) => {
   if (!e.touches[0]) return;
+  const dx = e.touches[0].clientX - pointer.x;
+  const dy = e.touches[0].clientY - pointer.y;
   pointer.x = e.touches[0].clientX;
   pointer.y = e.touches[0].clientY;
   pointer.active = 1;
+  metrics.pointerSpeed = Math.min(999, Math.hypot(dx, dy) * 3);
+  metrics.touches += 1;
   clearTimeout(window.__activeTimeout);
   window.__activeTimeout = setTimeout(() => (pointer.active = 0), 220);
+});
+
+window.addEventListener("click", () => {
+  metrics.clicks += 1;
 });
 
 navPills.forEach((pill) => {
